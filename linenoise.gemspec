@@ -16,10 +16,18 @@ Gem::Specification.new do |s|
   s.metadata['changelog_uri'] = File.join(s.homepage, 'blob/master/CHANGELOG.md')
 
   s.require_path = 'lib'
-  s.files = ['lib/linenoise.rb', *Dir.glob('lib/**/*')]
+  s.files = [
+    *Dir.glob('{ext,lib}/**/*.{rb,c,h}'),
+    'README.md',
+    'CHANGELOG.md',
+    'LICENSE.md'
+  ]
   s.test_files = Dir.glob('spec/**/*')
 
   s.required_ruby_version = '>= 2.1'
+
+  s.platform = Gem::Platform::RUBY
+  s.extensions = %w[ext/linenoise/extconf.rb]
 
   s.add_development_dependency 'rake', '~> 12.3'
   s.add_development_dependency 'rake-compiler', '~> 1.0'
