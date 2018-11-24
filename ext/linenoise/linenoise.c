@@ -28,7 +28,4 @@ Init_linenoise(void)
 
   /* Version string of Linenoise. */
   rb_define_const(mLinenoise, "VERSION", rb_str_new_cstr("1.0"));
-
-  /* Gem version */
-  rb_define_const(mLinenoise, "GEM_VERSION", rb_str_new_cstr("0.0.1"));
 }
