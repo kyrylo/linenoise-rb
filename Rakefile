@@ -7,4 +7,5 @@ task default: :spec
 Rake::ExtensionTask.new do |ext|
   ext.name = 'linenoise'
   ext.ext_dir = 'ext/linenoise'
+  ext.lib_dir = 'lib/linenoise'
 end

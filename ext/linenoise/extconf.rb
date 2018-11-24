@@ -1,2 +1,2 @@
 require 'mkmf'
-create_makefile('linenoise')
+create_makefile('linenoise/linenoise')

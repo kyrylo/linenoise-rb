@@ -1,3 +1,3 @@
 module Linenoise
-  GEM_VERSION = '0.0.1'.freeze
+  GEM_VERSION = '1.0.0'.freeze
 end
