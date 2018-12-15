@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   ]
   s.test_files = Dir.glob('spec/**/*')
 
-  s.required_ruby_version = '>= 2.1'
+  s.required_ruby_version = '>= 1.9'
 
   s.platform = Gem::Platform::RUBY
   s.extensions = %w[ext/linenoise/extconf.rb]
@@ -34,4 +34,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 3.8'
   s.add_development_dependency 'pry', '~> 0.12'
   s.add_development_dependency 'yard', '~> 0.9'
+  s.add_development_dependency 'rubocop', '~> 0.61'
+  s.add_development_dependency 'rubocop-rspec', '~> 1.30'
 end
