@@ -13,3 +13,8 @@ Metrics/BlockLength:
 
 Gemspec/RequiredRubyVersion:
   Enabled: false
+
+Metrics/BlockLength:
+  ExcludedMethods: ['describe', 'context']
+  Exclude:
+    - 'linenoise.gemspec'
