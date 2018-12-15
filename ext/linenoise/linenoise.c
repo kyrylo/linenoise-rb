@@ -9,10 +9,10 @@ linenoise_linenoise(VALUE self, VALUE prompt)
 
     line = linenoise(StringValueCStr(prompt));
     if (line) {
-	result = rb_locale_str_new_cstr(line);
+        result = rb_locale_str_new_cstr(line);
     }
     else
-	result = Qnil;
+        result = Qnil;
     if (line) free(line);
 
     return result;
@@ -23,7 +23,7 @@ Init_linenoise(void)
 {
     VALUE mLinenoise = rb_define_module("Linenoise");
     rb_define_module_function(mLinenoise, "linenoise",
-			      linenoise_linenoise, 1);
+                              linenoise_linenoise, 1);
     rb_define_alias(rb_singleton_class(mLinenoise), "readline", "linenoise");
 
     /* Version string of Linenoise. */
