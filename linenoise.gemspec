@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   ]
   s.test_files = Dir.glob('spec/**/*')
 
-  s.required_ruby_version = '>= 1.9'
+  s.required_ruby_version = '>= 2.1'
 
   s.platform = Gem::Platform::RUBY
   s.extensions = %w[ext/linenoise/extconf.rb]
