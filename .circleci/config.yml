@@ -19,7 +19,7 @@ references:
   unit: &unit
     run:
       name: Run unit tests
-      command: bundle exec rake
+      command: bundle exec rake compile spec
 
 jobs:
   rubocop_lint:
@@ -44,22 +44,6 @@ jobs:
       - run:
           name: Run YARD linting
           command: bundle exec yardoc --fail-on-warning --no-progress
-  "ruby-1.9":
-    docker:
-      - image: kyrylo/ruby-1.9.3p551
-    working_directory: /home/circleci/linenoise
-    steps:
-      - <<: *repo_restore_cache
-      - <<: *bundle_install
-      - <<: *unit
-  "ruby-2.0":
-    docker:
-      - image: kyrylo/ruby-2.0.0p648
-    working_directory: /home/circleci/linenoise
-    steps:
-      - <<: *repo_restore_cache
-      - <<: *bundle_install
-      - <<: *unit
   "ruby-2.1":
     docker:
       - image: circleci/ruby:2.1
@@ -107,14 +91,6 @@ workflows:
     jobs:
       - rubocop_lint
       - yard_lint
-      - "ruby-1.9":
-          requires:
-            - rubocop_lint
-            - yard_lint
-      - "ruby-2.0":
-          requires:
-            - rubocop_lint
-            - yard_lint
       - "ruby-2.1":
           requires:
             - rubocop_lint

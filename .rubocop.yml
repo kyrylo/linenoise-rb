@@ -1,0 +1,15 @@
+Metrics/LineLength:
+  Max: 90
+
+Style/StringLiterals:
+  Enabled: false
+
+Gemspec/OrderedDependencies:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'linenoise.gemspec'
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
