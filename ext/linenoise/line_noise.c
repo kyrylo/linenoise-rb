@@ -1086,6 +1086,14 @@ static void freeHistory(void) {
     }
 }
 
+// Allocate fresh memory for history and reset history length.
+static void resetHistory(void) {
+    history = malloc(sizeof(char*)*history_max_len);
+    if (history == NULL) return;
+    memset(history, 0, (sizeof(char*)*history_max_len));
+    history_len = 0;
+}
+
 /* At exit we'll try to fix the terminal to the initial conditions. */
 static void linenoiseAtExit(void) {
     disableRawMode(STDIN_FILENO);
@@ -1106,9 +1114,8 @@ int linenoiseHistoryAdd(const char *line) {
 
     /* Initialization on first call. */
     if (history == NULL) {
-        history = malloc(sizeof(char*)*history_max_len);
+        resetHistory();
         if (history == NULL) return 0;
-        memset(history,0,(sizeof(char*)*history_max_len));
     }
 
     /* Don't add duplicated lines. */
@@ -1198,4 +1205,13 @@ int linenoiseHistoryLoad(const char *filename) {
     }
     fclose(fp);
     return 0;
+}
+
+int linenoiseHistorySize(void) {
+    return history_len;
+}
+
+void linenoiseHistoryClear(void) {
+    freeHistory();
+    resetHistory();
 }
