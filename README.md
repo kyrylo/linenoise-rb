@@ -1,6 +1,8 @@
 Linenoise
 =========
 
+[![CircleCI](https://circleci.com/gh/kyrylo/linenoise-rb.svg?style=svg)](https://circleci.com/gh/kyrylo/linenoise-rb)
+
 Introduction
 ------------
 
