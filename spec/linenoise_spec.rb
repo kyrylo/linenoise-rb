@@ -13,4 +13,17 @@ RSpec.describe Linenoise do
         .to raise_error(ArgumentError, "argument must respond to `call'")
     end
   end
+
+  describe "#multiline?" do
+    after { Linenoise.multiline = true }
+
+    it "is `true` by default" do
+      expect(Linenoise).to be_multiline
+    end
+
+    it "can be set to `false`" do
+      Linenoise.multiline = false
+      expect(Linenoise).not_to be_multiline
+    end
+  end
 end

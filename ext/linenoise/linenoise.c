@@ -4,7 +4,7 @@
 #include "line_noise.h"
 
 static VALUE mLinenoise;
-static ID id_call, completion_proc;
+static ID id_call, id_multiline, completion_proc;
 
 #define COMPLETION_PROC "completion_proc"
 
@@ -69,6 +69,21 @@ static VALUE
 linenoise_get_completion_proc(VALUE self)
 {
     return rb_attr_get(mLinenoise, completion_proc);
+}
+
+static VALUE
+linenoise_set_multiline(VALUE self, VALUE vbool)
+{
+    int i = RTEST(vbool) ? 1 : 0;
+    rb_ivar_set(mLinenoise, id_multiline, vbool);
+    linenoiseSetMultiLine(i);
+    return vbool;
+}
+
+static VALUE
+linenoise_get_multiline(VALUE self)
+{
+    return rb_attr_get(mLinenoise, id_multiline);
 }
 
 static VALUE
@@ -141,6 +156,7 @@ Init_linenoise(void)
     VALUE history;
 
     id_call = rb_intern("call");
+    id_multiline = rb_intern("multiline");
     completion_proc = rb_intern(COMPLETION_PROC);
 
     mLinenoise = rb_define_module("Linenoise");
@@ -153,6 +169,10 @@ Init_linenoise(void)
                                linenoise_set_completion_proc, 1);
     rb_define_singleton_method(mLinenoise, "completion_proc",
                                linenoise_get_completion_proc, 0);
+    rb_define_singleton_method(mLinenoise, "multiline=",
+                               linenoise_set_multiline, 1);
+    rb_define_singleton_method(mLinenoise, "multiline?",
+                               linenoise_get_multiline, 0);
 
     history = rb_obj_alloc(rb_cObject);
     rb_extend_object(history, rb_mEnumerable);
@@ -170,4 +190,6 @@ Init_linenoise(void)
      * HISTORY[4].
      */
     rb_define_const(mLinenoise, "HISTORY", history);
+
+    rb_funcall(mLinenoise, rb_intern("multiline="), 1, Qtrue);
 }
