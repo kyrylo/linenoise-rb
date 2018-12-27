@@ -4,9 +4,22 @@
 #include "line_noise.h"
 
 static VALUE mLinenoise;
-static ID id_call, id_multiline, completion_proc;
+static ID id_call, id_multiline, id_hint_bold, id_hint_color, completion_proc,
+          hint_proc;
+static VALUE hint_color, hint_boldness;
 
 #define COMPLETION_PROC "completion_proc"
+#define HINT_PROC "hint_proc"
+
+/* Hint colors */
+enum {red = 31, green, yellow, blue, magenta, cyan, white};
+
+static void
+mustbe_callable(VALUE proc)
+{
+    if (!NIL_P(proc) && !rb_respond_to(proc, id_call))
+        rb_raise(rb_eArgError, "argument must respond to `call'");
+}
 
 static VALUE
 linenoise_linenoise(VALUE self, VALUE prompt)
@@ -58,9 +71,7 @@ linenoise_attempted_completion_function(const char *buf, struct linenoiseComplet
 static VALUE
 linenoise_set_completion_proc(VALUE self, VALUE proc)
 {
-    if (!NIL_P(proc) && !rb_respond_to(proc, id_call)) {
-        rb_raise(rb_eArgError, "argument must respond to `call'");
-    }
+    mustbe_callable(proc);
     linenoiseSetCompletionCallback(linenoise_attempted_completion_function);
     return rb_ivar_set(mLinenoise, completion_proc, proc);
 }
@@ -84,6 +95,68 @@ static VALUE
 linenoise_get_multiline(VALUE self)
 {
     return rb_attr_get(mLinenoise, id_multiline);
+}
+
+static char *
+linenoise_attempted_hint_function(const char *buf, int *color, int *bold)
+{
+    VALUE proc, str, encobj;
+    rb_encoding *enc;
+
+    *bold = RTEST(hint_boldness) ? 1 : 0;
+    *color = NUM2INT(hint_color);
+
+    proc = rb_attr_get(mLinenoise, hint_proc);
+    if (NIL_P(proc))
+        return NULL;
+
+    str = rb_funcall(proc, id_call, 1, rb_locale_str_new_cstr(buf));
+    enc = rb_locale_encoding();
+    encobj = rb_enc_from_encoding(enc);
+    StringValueCStr(str);
+    rb_enc_check(encobj, str);
+
+    return RSTRING_PTR(str);
+}
+
+static VALUE
+linenoise_set_hint_proc(VALUE self, VALUE proc)
+{
+    mustbe_callable(proc);
+    linenoiseSetHintsCallback(linenoise_attempted_hint_function);
+    return rb_ivar_set(mLinenoise, hint_proc, proc);
+}
+
+static VALUE
+linenoise_get_hint_proc(VALUE self)
+{
+    return rb_attr_get(mLinenoise, hint_proc);
+}
+
+static VALUE
+linenoise_set_hint_color(VALUE self, VALUE color)
+{
+    hint_color = color;
+    return rb_ivar_set(mLinenoise, id_hint_color, color);
+}
+
+static VALUE
+linenoise_get_hint_color(VALUE self)
+{
+    return rb_attr_get(mLinenoise, id_hint_color);
+}
+
+static VALUE
+linenoise_set_hint_boldness(VALUE self, VALUE boldness)
+{
+    hint_boldness = boldness;
+    return rb_ivar_set(mLinenoise, id_hint_bold, boldness);
+}
+
+static VALUE
+linenoise_get_hint_boldness(VALUE self)
+{
+    return rb_attr_get(mLinenoise, id_hint_bold);
 }
 
 static VALUE
@@ -157,7 +230,11 @@ Init_linenoise(void)
 
     id_call = rb_intern("call");
     id_multiline = rb_intern("multiline");
+    id_hint_bold = rb_intern("hint_bold");
+    id_hint_color = rb_intern("hint_color");
+
     completion_proc = rb_intern(COMPLETION_PROC);
+    hint_proc = rb_intern(HINT_PROC);
 
     mLinenoise = rb_define_module("Linenoise");
     /* Version string of Linenoise. */
@@ -173,6 +250,18 @@ Init_linenoise(void)
                                linenoise_set_multiline, 1);
     rb_define_singleton_method(mLinenoise, "multiline?",
                                linenoise_get_multiline, 0);
+    rb_define_singleton_method(mLinenoise, "hint_proc=",
+                               linenoise_set_hint_proc, 1);
+    rb_define_singleton_method(mLinenoise, "hint_proc",
+                               linenoise_get_hint_proc, 0);
+    rb_define_singleton_method(mLinenoise, "hint_color=",
+                               linenoise_set_hint_color, 1);
+    rb_define_singleton_method(mLinenoise, "hint_color",
+                               linenoise_get_hint_color, 0);
+    rb_define_singleton_method(mLinenoise, "hint_bold=",
+                               linenoise_set_hint_boldness, 1);
+    rb_define_singleton_method(mLinenoise, "hint_bold?",
+                               linenoise_get_hint_boldness, 0);
 
     history = rb_obj_alloc(rb_cObject);
     rb_extend_object(history, rb_mEnumerable);
@@ -191,5 +280,17 @@ Init_linenoise(void)
      */
     rb_define_const(mLinenoise, "HISTORY", history);
 
+    /* Hint color helpers */
+    rb_define_const(mLinenoise, "DEFAULT", Qnil);
+    rb_define_const(mLinenoise, "RED", INT2NUM(red));
+    rb_define_const(mLinenoise, "GREEN", INT2NUM(green));
+    rb_define_const(mLinenoise, "YELLOW", INT2NUM(yellow));
+    rb_define_const(mLinenoise, "BLUE", INT2NUM(blue));
+    rb_define_const(mLinenoise, "MAGENTA", INT2NUM(magenta));
+    rb_define_const(mLinenoise, "CYAN", INT2NUM(cyan));
+    rb_define_const(mLinenoise, "WHITE", INT2NUM(white));
+
     rb_funcall(mLinenoise, rb_intern("multiline="), 1, Qtrue);
+    rb_funcall(mLinenoise, rb_intern("hint_color="), 1, Qnil);
+    rb_funcall(mLinenoise, rb_intern("hint_bold="), 1, Qfalse);
 }

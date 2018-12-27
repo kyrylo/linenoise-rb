@@ -14,6 +14,31 @@ RSpec.describe Linenoise do
     end
   end
 
+  describe "#hint_proc=" do
+    it "raises error when passed value doesn't implement #call" do
+      expect { described_class.hint_proc = 1 }
+        .to raise_error(ArgumentError, "argument must respond to `call'")
+    end
+  end
+
+  describe "#hint_color=" do
+    after { Linenoise.hint_color = Linenoise::DEFAULT }
+
+    it "sets hint color" do
+      Linenoise.hint_color = Linenoise::RED
+      expect(Linenoise.hint_color).to eq(Linenoise::RED)
+    end
+  end
+
+  describe "#hint_bold=" do
+    after { Linenoise.hint_color = false }
+
+    it "sets hint color" do
+      Linenoise.hint_bold = true
+      expect(Linenoise.hint_bold?).to be_truthy
+    end
+  end
+
   describe "#multiline?" do
     after { Linenoise.multiline = true }
 
