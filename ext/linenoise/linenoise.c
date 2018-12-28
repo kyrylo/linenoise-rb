@@ -6,7 +6,8 @@
 static VALUE mLinenoise;
 static ID id_call, id_multiline, id_hint_bold, id_hint_color, completion_proc,
           hint_proc;
-static VALUE hint_color, hint_boldness;
+static VALUE hint_boldness;
+static int hint_color;
 
 #define COMPLETION_PROC "completion_proc"
 #define HINT_PROC "hint_proc"
@@ -104,7 +105,7 @@ linenoise_attempted_hint_function(const char *buf, int *color, int *bold)
     rb_encoding *enc;
 
     *bold = RTEST(hint_boldness) ? 1 : 0;
-    *color = NUM2INT(hint_color);
+    *color = hint_color;
 
     proc = rb_attr_get(mLinenoise, hint_proc);
     if (NIL_P(proc))
@@ -136,7 +137,24 @@ linenoise_get_hint_proc(VALUE self)
 static VALUE
 linenoise_set_hint_color(VALUE self, VALUE color)
 {
-    hint_color = color;
+    int c = 0;
+
+    switch (TYPE(color)) {
+      case T_NIL:
+        break;
+      case T_FIXNUM:
+        c = NUM2INT(color);
+        break;
+      default:
+        rb_raise(rb_eTypeError, "hint color is not an Integer");
+    }
+
+    if (c == 0 || (c >= 31 && c <= 37)) {
+        hint_color = c;
+    }
+    else
+        rb_raise(rb_eArgError, "color '%d' is not in range (31-37)", c);
+
     return rb_ivar_set(mLinenoise, id_hint_color, color);
 }
 
