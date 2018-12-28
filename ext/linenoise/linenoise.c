@@ -178,6 +178,13 @@ linenoise_get_hint_boldness(VALUE self)
 }
 
 static VALUE
+linenoise_clear_screen(VALUE self)
+{
+    linenoiseClearScreen();
+    return self;
+}
+
+static VALUE
 hist_set_max_len(VALUE self, VALUE len)
 {
     linenoiseHistorySetMaxLen(NUM2INT(len));
@@ -280,6 +287,8 @@ Init_linenoise(void)
                                linenoise_set_hint_boldness, 1);
     rb_define_singleton_method(mLinenoise, "hint_bold?",
                                linenoise_get_hint_boldness, 0);
+    rb_define_singleton_method(mLinenoise, "clear_screen",
+                               linenoise_clear_screen, 0);
 
     history = rb_obj_alloc(rb_cObject);
     rb_extend_object(history, rb_mEnumerable);
