@@ -28,10 +28,20 @@ RSpec.describe Linenoise do
       Linenoise.hint_color = Linenoise::RED
       expect(Linenoise.hint_color).to eq(Linenoise::RED)
     end
+
+    it "raises error if color is not in range" do
+      expect { Linenoise.hint_color = -1 }
+        .to raise_error(ArgumentError, "color '-1' is not in range (31-37)")
+    end
+
+    it "raises error if color is not an integer" do
+      expect { Linenoise.hint_color = 'salamat' }
+        .to raise_error(TypeError, 'hint color is not an Integer')
+    end
   end
 
   describe "#hint_bold=" do
-    after { Linenoise.hint_color = false }
+    after { Linenoise.hint_bold = false }
 
     it "sets hint color" do
       Linenoise.hint_bold = true
