@@ -46,36 +46,47 @@ static int hint_color;
  * History can be accessed through {Linenoise::HISTORY}. It can be saved to a
  * file, or loaded from a file.
  *
- *  # Add something to the history.
- *  Linenoise::HISTORY << '1 + 1'
+ * === Adding lines to the history
  *
- *  # Or push multiple items.
- *  Linenoise::HISTORY.push('2', '3')
- *  Linenoise::HISTORY.size
+ *   Linenoise::HISTORY << '1 + 1'
+ *
+ *   # Or push multiple items.
+ *   Linenoise::HISTORY.push('2', '3')
+ *   Linenoise::HISTORY.size
  *   #=> 3
  *
- *  # Access a line in the history.
- *  Linenoise::HISTORY[0]
- *  #=> '1 + 1'
+ * === Iterating lines & accessing individual entries
  *
- *  # Replace a line in the history.
- *  Linenoise::HISTORY[0] = 'begin'
- *  Linenoise::HISTORY[0]
- *  #=> 'begin'
+ *   # Read a line at given index.
+ *   Linenoise::HISTORY[0]
+ *   #=> '1 + 1'
  *
- *  # Iterate over lines like an array (HISTORY is enumerable).
- *  Linenoise::HISTORY.each { |line| puts line }
+ *   # Replace a line in the history with another one.
+ *   Linenoise::HISTORY[0] = 'begin'
+ *   Linenoise::HISTORY[0]
+ *   #=> 'begin'
  *
- *  # Save to file.
- *  Linenoise::HISTORY.save('linenoise_history')
+ *   # Iterate over lines like an array (HISTORY is enumerable).
+ *   Linenoise::HISTORY.each { |line| puts line }
  *
- *  # Load from file.
- *  Linenoise::HISTORY.load('linenoise_history')
+ * === Saving & loading
  *
- *  # Wipe out current history (doesn't delete the file).
- *  Linenoise::HISTORY.clear
- *  Linenoise::HISTORY.size
- *  #=> 0
+ *   # Save to file.
+ *   Linenoise::HISTORY.save('linenoise_history')
+ *
+ *   # Load from file.
+ *   Linenoise::HISTORY.load('linenoise_history')
+ *
+ *   # Wipe out current history (doesn't delete the file).
+ *   Linenoise::HISTORY.clear
+ *   Linenoise::HISTORY.size
+ *   #=> 0
+ *
+ * === Setting maximum size of history
+ *
+ *   # The cap sets how many entries history can hold. When the capacity is
+ *   # exceeded, older entries are removed.
+ *   Linenoise::HISTORY.max_size = 3
  */
 
 /* Hint colors */
@@ -553,7 +564,7 @@ Init_linenoise(void)
 
     history = rb_obj_alloc(rb_cObject);
     rb_extend_object(history, rb_mEnumerable);
-    rb_define_singleton_method(history, "max_len=", hist_set_max_len, 1);
+    rb_define_singleton_method(history, "max_size=", hist_set_max_len, 1);
     rb_define_singleton_method(history, "<<", hist_push, 1);
     rb_define_singleton_method(history, "push", hist_push_method, -1);
     rb_define_singleton_method(history, "save", hist_save, 1);
