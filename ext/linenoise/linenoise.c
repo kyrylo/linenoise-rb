@@ -166,15 +166,13 @@ linenoise_attempted_completion_function(const char *buf, struct linenoiseComplet
  *
  *   require 'linenoise'
  *
- *   LIST = [
- *     'search', 'download', 'open',
- *     'help', 'history', 'quit',
- *     'url', 'next', 'clear',
- *     'prev', 'past'
- *   ].sort
+ *   LIST = %w[
+ *     search download open help history quit url next clear prev past
+ *   ].freeze
  *
- *   comp = proc { |s| LIST.grep(/^#{Regexp.escape(s)}/) }
- *   Linenoise.completion_proc = comp
+ *   Linenoise.completion_proc = proc do |input|
+ *     LIST.grep(/\A#{Regexp.escape(input)}/)
+ *   end
  *
  *   while line = Linenoise.linenoise('> ')
  *     p line
