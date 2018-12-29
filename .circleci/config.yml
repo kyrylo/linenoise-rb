@@ -84,6 +84,14 @@ jobs:
       - <<: *repo_restore_cache
       - <<: *bundle_install
       - <<: *unit
+  "ruby-2.6":
+    docker:
+      - image: circleci/ruby:2.6
+    working_directory: ~/linenoise
+    steps:
+      - <<: *repo_restore_cache
+      - <<: *bundle_install
+      - <<: *unit
 
 workflows:
   version: 2
@@ -108,6 +116,10 @@ workflows:
             - rubocop_lint
             - yard_lint
       - "ruby-2.5":
+          requires:
+            - rubocop_lint
+            - yard_lint
+      - "ruby-2.6":
           requires:
             - rubocop_lint
             - yard_lint
