@@ -3,7 +3,7 @@ RSpec.describe Linenoise::HISTORY do
 
   describe "#push" do
     it "appends to history" do
-      subject.max_len = 3
+      subject.max_size = 3
 
       subject << "123"
       expect(subject.size).to eq(1)
