@@ -12,6 +12,64 @@ static int hint_color;
 #define COMPLETION_PROC "completion_proc"
 #define HINT_PROC "hint_proc"
 
+/*
+ * Document-module: Linenoise
+ *
+ * The Linenoise module provides interface for the Linenoise library, which is a
+ * Readline replacement used in Redis, MongoDB, and Android.
+ *
+ * This module defines a number of methods to facilitate completion and accesses
+ * input history from the Ruby interpreter.
+ *
+ * Linenoise:: https://github.com/antirez/linenoise
+ *
+ * Reads one inputted line with line edit via the {Linenoise.linenoise} method.
+ *
+ *   require 'linenoise'
+ *
+ *   while buf = Linenoise.linenoise('> ')
+ *     p buf
+ *   end
+ *
+ * User input can be persisted via the history feature. The history can be
+ * accessed through the {Linenoise::HISTORY} constant.
+ *
+ *   require 'linenoise'
+ *
+ *   while buf = Linenoise.linenoise('> ')
+ *     p Linenoise::HISTORY.to_a
+ *     print('-> ', buf, '\n')
+ *   end
+ *
+ * == Using history
+ *
+ * History can be accessed through {Linenoise::HISTORY}. It can be saved to a
+ * file, or loaded from a file.
+ *
+ *  # Add something to the history.
+ *  Linenoise::HISTORY << '1 + 1'
+ *
+ *  # Or push multiple items.
+ *  Linenoise::HISTORY.push('2', '3')
+ *  Linenoise::HISTORY.size
+ *   #=> 3
+ *
+ *  # Access a line in the history.
+ *  Linenoise::HISTORY[0]
+ *  #=> '1 + 1'
+ *
+ *  # Save to file.
+ *  Linenoise::HISTORY.save('linenoise_history')
+ *
+ *  # Load from file.
+ *  Linenoise::HISTORY.load('linenoise_history')
+ *
+ *  # Wipe out current history (doesn't delete the file).
+ *  Linenoise::HISTORY.clear
+ *  Linenoise::HISTORY.size
+ *  #=> 0
+ */
+
 /* Hint colors */
 enum {red = 31, green, yellow, blue, magenta, cyan, white};
 
@@ -22,6 +80,17 @@ mustbe_callable(VALUE proc)
         rb_raise(rb_eArgError, "argument must respond to `call'");
 }
 
+/*
+ * call-seq:
+ *   Linenoise.linenoise(prompt) -> string or nil
+ *
+ * Shows the +prompt+ and reads the inputted line with line editing.
+ *
+ * Returns nil when the inputted line is empty and user inputs EOF
+ * (Presses ^D on UNIX).
+ *
+ * Aliased as +readline+ for easier integration with Readline-enabled apps.
+ */
 static VALUE
 linenoise_linenoise(VALUE self, VALUE prompt)
 {
@@ -69,6 +138,31 @@ linenoise_attempted_completion_function(const char *buf, struct linenoiseComplet
     }
 }
 
+/*
+ * call-seq:
+ *   Linenoise.completion_proc = proc
+ *
+ * Specifies a Proc object +proc+ to determine completion behavior. It should
+ * take input string and return an array of completion candidates.
+ *
+ *   require 'linenoise'
+ *
+ *   LIST = [
+ *     'search', 'download', 'open',
+ *     'help', 'history', 'quit',
+ *     'url', 'next', 'clear',
+ *     'prev', 'past'
+ *   ].sort
+ *
+ *   comp = proc { |s| LIST.grep(/^#{Regexp.escape(s)}/) }
+ *   Linenoise.completion_proc = comp
+ *
+ *   while line = Linenoise.linenoise('> ')
+ *     p line
+ *   end
+ *
+ * @raise ArgumentError if +proc+ is not a Proc
+ */
 static VALUE
 linenoise_set_completion_proc(VALUE self, VALUE proc)
 {
@@ -77,12 +171,26 @@ linenoise_set_completion_proc(VALUE self, VALUE proc)
     return rb_ivar_set(mLinenoise, completion_proc, proc);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.completion_proc -> proc
+ *
+ * Returns the completion Proc object.
+ */
 static VALUE
 linenoise_get_completion_proc(VALUE self)
 {
     return rb_attr_get(mLinenoise, completion_proc);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.multiline = bool -> bool
+ *
+ * Specifies multiline mode. By default, Linenoise uses single line editing,
+ * that is, a single row on the screen will be used, and as the user types more,
+ * the text will scroll towards left to make room.
+ */
 static VALUE
 linenoise_set_multiline(VALUE self, VALUE vbool)
 {
@@ -92,6 +200,12 @@ linenoise_set_multiline(VALUE self, VALUE vbool)
     return vbool;
 }
 
+/*
+ * call-seq:
+ *   Linenoise.multiline?
+ *
+ * Checks if multiline mode is enabled.
+ */
 static VALUE
 linenoise_get_multiline(VALUE self)
 {
@@ -120,6 +234,32 @@ linenoise_attempted_hint_function(const char *buf, int *color, int *bold)
     return RSTRING_PTR(str);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_proc = proc
+ *
+ * Specifies a Proc object +proc+ to determine hint behavior. It should take
+ * input string and return the completion according to the input.
+ *
+ *   require 'linenoise'
+ *
+ *   Linenoise.hint_proc = proc do |input|
+ *     case input
+ *     when /git show/
+ *       ' [<options>] [<object>...]'
+ *     when /git log/
+ *       ' [<options>] [<revision range>]'
+ *     else
+ *       ' --help'
+ *     end
+ *   end
+ *
+ *   while line = Linenoise.linenoise('> ')
+ *     p line
+ *   end
+ *
+ * @raise ArgumentError if +proc+ is not a Proc
+ */
 static VALUE
 linenoise_set_hint_proc(VALUE self, VALUE proc)
 {
@@ -128,12 +268,36 @@ linenoise_set_hint_proc(VALUE self, VALUE proc)
     return rb_ivar_set(mLinenoise, hint_proc, proc);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_proc -> proc
+ *
+ * Returns the hint Proc object.
+ */
 static VALUE
 linenoise_get_hint_proc(VALUE self)
 {
     return rb_attr_get(mLinenoise, hint_proc);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_color = Integer -> Integer
+ *
+ * Sets the hint color. Allowed values are in a range from 31 to 37. Setting
+ * this option to 0 removes the color and uses the default font color.
+ *
+ * There are convenience constants for setting colors:
+ *
+ *   # Make the hint red.
+ *   Linenoise.hint_color = Linenoise::RED
+ *
+ *   # Remove the color.
+ *   Linenoise.hint_color = Linenoise::DEFAULT
+ *
+ * @raise TypeError if +color+ is not an Integer
+ * @raise ArgumentError if +color+ is not 0 or in range of 31-37
+ */
 static VALUE
 linenoise_set_hint_color(VALUE self, VALUE color)
 {
@@ -158,12 +322,27 @@ linenoise_set_hint_color(VALUE self, VALUE color)
     return rb_ivar_set(mLinenoise, id_hint_color, color);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_color -> Integer
+ *
+ * Checks hint font color.
+ */
 static VALUE
 linenoise_get_hint_color(VALUE self)
 {
     return rb_attr_get(mLinenoise, id_hint_color);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_bold = bool -> bool
+ *
+ * Sets hint boldness. +false+ means normal text, +true+ means bold. Defults to
+ * +false+.
+ *
+ *   Linenoise.hint_bold = true
+ */
 static VALUE
 linenoise_set_hint_boldness(VALUE self, VALUE boldness)
 {
@@ -171,12 +350,24 @@ linenoise_set_hint_boldness(VALUE self, VALUE boldness)
     return rb_ivar_set(mLinenoise, id_hint_bold, boldness);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hint_bold? -> bool
+ *
+ * Checks if the hint font is bold.
+ */
 static VALUE
 linenoise_get_hint_boldness(VALUE self)
 {
     return rb_attr_get(mLinenoise, id_hint_bold);
 }
 
+/*
+ * call-seq:
+ *   Linenoise.clear_screen -> self
+ *
+ * Clears screen from characters.
+ */
 static VALUE
 linenoise_clear_screen(VALUE self)
 {
@@ -241,6 +432,12 @@ hist_length(VALUE self)
     return INT2NUM(linenoiseHistorySize());
 }
 
+/*
+ * call-seq:
+ *   Linenoise.hist_clear -> self
+ *
+ * Clears input history.
+ */
 static VALUE
 hist_clear(VALUE self)
 {
@@ -302,7 +499,7 @@ Init_linenoise(void)
 
     /*
      * The history buffer. It extends Enumerable module, so it behaves just like
-     * an array.  For example, gets the fifth content that the user input by
+     * an array. For example, gets the fifth content that the user input by
      * HISTORY[4].
      */
     rb_define_const(mLinenoise, "HISTORY", history);
