@@ -63,6 +63,8 @@ int linenoiseHistorySetMaxLen(int len);
 int linenoiseHistorySave(const char *filename);
 int linenoiseHistoryLoad(const char *filename);
 int linenoiseHistorySize();
+char *linenoiseHistoryGet(int index);
+char *linenoiseHistoryReplaceLine(int index, char *line);
 void linenoiseHistoryClear();
 void linenoiseClearScreen(void);
 void linenoiseSetMultiLine(int ml);

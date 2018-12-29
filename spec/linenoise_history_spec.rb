@@ -42,4 +42,30 @@ RSpec.describe Linenoise::HISTORY do
       expect(subject.size).to eq(2)
     end
   end
+
+  describe "#[]=" do
+    before { subject.push('1', '2', '3') }
+
+    it "replaces a line in history" do
+      subject[0] = 'begin'
+      subject[-1] = 'end'
+
+      expect(subject[0]).to eq('begin')
+      expect(subject[1]).to eq('2')
+      expect(subject[2]).to eq('end')
+    end
+
+    it "raises error when index is out of boundary" do
+      expect { subject[100] = 'begin' }
+        .to raise_error(IndexError, 'invalid index')
+    end
+  end
+
+  describe "#each" do
+    before { subject.push('1', '2', '3') }
+
+    it "iterates over history lines" do
+      expect(subject.each.to_a.join).to eq('123')
+    end
+  end
 end

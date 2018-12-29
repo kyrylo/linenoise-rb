@@ -1211,6 +1211,29 @@ int linenoiseHistorySize(void) {
     return history_len;
 }
 
+char *linenoiseHistoryGet(int index) {
+    if (index < 0 || index+1 > history_len)
+        return NULL;
+    return history[index];
+}
+
+char *linenoiseHistoryReplaceLine(int index, char *line) {
+    char *linecopy, *old_line;
+
+    if (index < 0 || index+1 > history_len)
+        return NULL;
+
+    /* Allocate memory for this new line so it can be freed */
+    linecopy = strdup(line);
+    if (!linecopy)
+        return NULL;
+
+    old_line = history[index];
+    history[index] = linecopy;
+
+    return old_line;
+}
+
 void linenoiseHistoryClear(void) {
     freeHistory();
     resetHistory();
