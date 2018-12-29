@@ -30,7 +30,7 @@ Installation
 Add the Linenoise gem to your Gemfile:
 
 ```ruby
-gem 'linenoise', '~> 1.0'
+gem 'linenoise', '~> 1.1'
 ```
 
 ### Manual
