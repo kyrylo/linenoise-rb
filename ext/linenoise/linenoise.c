@@ -58,6 +58,14 @@ static int hint_color;
  *  Linenoise::HISTORY[0]
  *  #=> '1 + 1'
  *
+ *  # Replace a line in the history.
+ *  Linenoise::HISTORY[0] = 'begin'
+ *  Linenoise::HISTORY[0]
+ *  #=> 'begin'
+ *
+ *  # Iterate over lines like an array (HISTORY is enumerable).
+ *  Linenoise::HISTORY.each { |line| puts line }
+ *
  *  # Save to file.
  *  Linenoise::HISTORY.save('linenoise_history')
  *
@@ -432,6 +440,62 @@ hist_length(VALUE self)
     return INT2NUM(linenoiseHistorySize());
 }
 
+static VALUE
+hist_each(VALUE self)
+{
+    char *line;
+    int i;
+
+    RETURN_ENUMERATOR(self, 0, 0);
+
+    for (i = 0; i < linenoiseHistorySize(); i++) {
+        line = linenoiseHistoryGet(i);
+        if (line == NULL)
+            break;
+        rb_yield(rb_locale_str_new_cstr(line));
+    }
+    return self;
+}
+
+static VALUE
+hist_get(VALUE self, VALUE index)
+{
+    char *line = NULL;
+    int i;
+
+    i = NUM2INT(index);
+    if (i < 0) {
+        i += linenoiseHistorySize();
+    }
+    if (i >= 0) {
+        line = linenoiseHistoryGet(i);
+    }
+    if (line == NULL) {
+        rb_raise(rb_eIndexError, "invalid index");
+    }
+    return rb_locale_str_new_cstr(line);
+}
+
+static VALUE
+hist_set(VALUE self, VALUE index, VALUE str)
+{
+    char *old_line = NULL;
+    int i;
+
+    i = NUM2INT(index);
+    StringValueCStr(str);
+    if (i < 0) {
+        i += linenoiseHistorySize();
+    }
+    if (i >= 0) {
+        old_line = linenoiseHistoryReplaceLine(i, RSTRING_PTR(str));
+    }
+    if (old_line == NULL) {
+        rb_raise(rb_eIndexError, "invalid index");
+    }
+    return str;
+}
+
 /*
  * call-seq:
  *   Linenoise.hist_clear -> self
@@ -496,6 +560,9 @@ Init_linenoise(void)
     rb_define_singleton_method(history, "load", hist_load, 1);
     rb_define_singleton_method(history, "size", hist_length, 0);
     rb_define_singleton_method(history, "clear", hist_clear, 0);
+    rb_define_singleton_method(history, "each", hist_each, 0);
+    rb_define_singleton_method(history, "[]", hist_get, 1);
+    rb_define_singleton_method(history, "[]=", hist_set, 2);
 
     /*
      * The history buffer. It extends Enumerable module, so it behaves just like
